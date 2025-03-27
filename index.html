@@ -17,9 +17,15 @@
             background-color: #141414;
             padding: 20px;
             text-align: center;
-            font-size: 24px;
+            font-size: 36px;
+            color: #E50914;  /* Netflix 빨간색 */
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.5); /* 붉은 빛 효과 */
+            letter-spacing: 1px;
+            font-weight: bold;
+            border-bottom: 5px solid #E50914; /* 타이틀 아래 빨간 선 */
+            margin-bottom: 20px;
         }
-        
+
         .movie-list {
             display: flex;
             flex-wrap: wrap;
@@ -76,7 +82,8 @@
 </head>
 <body>
     <header>
-        Netflix 스타일 영화 목록
+        <span>🎬 최신 영화</span> <br>
+        <span style="font-size: 22px; font-weight: normal; color: #aaa;">모든 영화를 한눈에</span>
     </header>
 
     <div class="movie-list" id="movie-list">
@@ -114,6 +121,11 @@
                         <p class="vote">⭐ ${movie.vote_average}</p>
                     </div>
                 `;
+
+                // 클릭 시 상세 페이지로 이동
+                movieElement.addEventListener('click', () => {
+                    window.location.href = `/movie-detail.html?id=${movie.id}`;  // 영화 ID를 URL 파라미터로 넘기기
+                });
 
                 movieListContainer.appendChild(movieElement);
             });

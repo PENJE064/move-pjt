@@ -25,7 +25,7 @@ const db = new sqlite3.Database(dbFilePath, (err) => {
   }
 });
 
-// 테이블 생성 (테이블이 존재하지 않으면 생성)
+// movies 테이블 생성 (테이블이 존재하지 않으면 생성)
 db.run(`
   CREATE TABLE IF NOT EXISTS movies (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,20 +41,36 @@ db.run(`
   )
 `, (err) => {
   if (err) {
-    console.error('테이블 생성 오류:', err.message);
+    console.error('movies 테이블 생성 오류:', err.message);
   } else {
-    console.log('테이블 생성 성공');
+    console.log('movies 테이블 생성 성공');
   }
 });
 
-// 데이터를 SQLite DB에 삽입
-const insertStmt = db.prepare(`
+// comments 테이블 생성 (테이블이 존재하지 않으면 생성)
+db.run(`
+  CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    movie_id INTEGER,
+    comment TEXT,
+    FOREIGN KEY (movie_id) REFERENCES movies (id)
+  )
+`, (err) => {
+  if (err) {
+    console.error('comments 테이블 생성 오류:', err.message);
+  } else {
+    console.log('comments 테이블 생성 성공');
+  }
+});
+
+// movies 데이터 삽입
+const insertMoviesStmt = db.prepare(`
   INSERT INTO movies (title, original_title, overview, release_date, poster_path, backdrop_path, popularity, vote_average, vote_count)
   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
 `);
 
 data.forEach((row) => {
-  insertStmt.run(
+  insertMoviesStmt.run(
     row['Title'] || null,
     row['Original Title'] || null,
     row['Overview'] || null,
@@ -67,20 +83,45 @@ data.forEach((row) => {
   );
 });
 
+// comments 데이터 삽입 (엑셀 파일에서 댓글 데이터를 가져오는 코드가 필요)
+const commentsData = [
+  { movie_id: 1, comment: '영화 너무 좋았어요!' },
+  { movie_id: 2, comment: '정말 재미있습니다!' },
+  // 여기에서 엑셀 데이터에 맞춰 실제 댓글 데이터를 추가하세요
+];
+
+const insertCommentsStmt = db.prepare(`
+  INSERT INTO comments (movie_id, comment) 
+  VALUES (?, ?)
+`);
+
+commentsData.forEach((comment) => {
+  insertCommentsStmt.run(comment.movie_id, comment.comment);
+});
+
 // 데이터 삽입 후 처리
-insertStmt.finalize((err) => {
+insertMoviesStmt.finalize((err) => {
   if (err) {
-    console.error('데이터 삽입 오류:', err.message);
+    console.error('영화 데이터 삽입 오류:', err.message);
   } else {
-    console.log('모든 데이터가 성공적으로 삽입되었습니다.');
+    console.log('모든 영화 데이터가 성공적으로 삽입되었습니다.');
   }
 
-  // 데이터베이스 연결 종료
-  db.close((err) => {
+  // 댓글 삽입 후 처리
+  insertCommentsStmt.finalize((err) => {
     if (err) {
-      console.error('데이터베이스 종료 오류:', err.message);
+      console.error('댓글 데이터 삽입 오류:', err.message);
     } else {
-      console.log('데이터베이스 연결 종료');
+      console.log('모든 댓글 데이터가 성공적으로 삽입되었습니다.');
     }
+
+    // 데이터베이스 연결 종료
+    db.close((err) => {
+      if (err) {
+        console.error('데이터베이스 종료 오류:', err.message);
+      } else {
+        console.log('데이터베이스 연결 종료');
+      }
+    });
   });
 });
